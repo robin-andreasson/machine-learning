@@ -1,11 +1,13 @@
 import numpy as np
-from modules.functions import linear, layer_normalization, dropout, softmax, attention
-from modules.activations import gelu
+from lib.modules import linear, layer_normalization, softmax, attention, positional_encoding
+from lib.activations import gelu
 
 
 class encoder():
-    def __init__(self, layers, heads, model_size):
+    def __init__(self, layers, heads, model_size, context_size):
         self.layers = layers
+
+        self.encodings = positional_encoding(n=100, context_size=context_size, model_size=model_size)
 
         # layer normalization
         self.normalization1 = np.full(layers, layer_normalization(model_size))
@@ -22,8 +24,9 @@ class encoder():
 
         # embeddings
 
+        x = x + self.encodings
+
         for layer in range(self.layers):
-            # positional encoding (only on new tokens?)
     
             residual = x
 
@@ -44,9 +47,11 @@ class encoder():
 
 
 class decoder():
-    def __init__(self, layers, heads, model_size, vocab_size):
+    def __init__(self, layers, heads, model_size, vocab_size, context_size):
 
         self.layers = layers
+
+        self.encodings = positional_encoding(n=100, context_size=context_size, model_size=model_size)
 
         # layer normalization
         self.normalization1 = np.full(layers, layer_normalization(model_size))
@@ -67,10 +72,12 @@ class decoder():
 
     def __call__(self, x, ex):
 
+
         # embeddings
 
+        x = x + self.encodings
+
         for layer in range(self.layers):
-            # positional encoding (only on new tokens?)
 
             residual = x
 
@@ -100,17 +107,18 @@ class decoder():
 
 
 class transformer():
-    def __init__(self, layers, heads, model_size, vocab_size):
+    def __init__(self, layers, heads, model_size, vocab_size, context_size):
         
-        self.encoder = encoder(layers, heads, model_size)
-        self.decoder = decoder(layers, heads, model_size, vocab_size) 
+        self.encoder = encoder(layers, heads, model_size, context_size)
+        self.decoder = decoder(layers, heads, model_size, vocab_size, context_size) 
 
 
-model = transformer(layers=12, model_size=512, heads=8, vocab_size=10000)
-input = np.random.rand(2, 20, 512)
+model = transformer(layers=12, model_size=512, heads=8, vocab_size=10000, context_size=1024)
+input = np.random.rand(2, 1024, 512)
 
 ex = model.encoder(input)
 
-input = model.decoder(input, ex)
+output = model.decoder(input, ex)
 
-print(input)
+# prediction for next token in the sequence
+print(output)

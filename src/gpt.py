@@ -1,6 +1,6 @@
 import numpy as np
-from modules.functions import linear, layer_normalization, dropout, softmax, attention, positional_encoding
-from modules.activations import gelu
+from lib.modules import linear, layer_normalization, dropout, softmax, attention, positional_encoding
+from lib.activations import gelu
 
 class gpt():
     def __init__(self, layers, heads, model_size, vocab_size, context_size):
@@ -29,7 +29,6 @@ class gpt():
 
 
 
-
     def __call__(self, x):
 
         x = x + self.encodings
@@ -38,7 +37,7 @@ class gpt():
 
         for layer in range(self.layers):
 
-            # save current state for future preservation of identity
+            # save current state for preservation of identity
             residual = x
 
             # normalize our input by each feature vector
@@ -61,7 +60,7 @@ class gpt():
             x = self.ffn2[layer](x)
 
             x = self.dropout(x) + residual
-
+            
         
         # normalize our input one last time
         x = self.normalization3(x)
@@ -80,4 +79,5 @@ input = np.random.rand(2, 1024, 512)
 
 output = model(input)
 
+# prediction for next token in the sequence
 print(output)
